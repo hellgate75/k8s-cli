@@ -26,9 +26,9 @@ jobs:
       run: |
         go get -v -t -d ./...
         if [ -f Gopkg.toml ]; then
-            mkdir -p  /home/runner/go/bin
-            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-            /home/runner/go/bin/dep ensure --update
+#            mkdir -p  /home/runner/go/bin
+#            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+#            dep ensure --update
         fi
 
     - name: Build
