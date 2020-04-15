@@ -1,9 +1,9 @@
 <p align="right">
  <img src="https://github.com/hellgate75/k8s-cli/workflows/Go/badge.svg?branch=master"></img>
-&nbsp;&nbsp;<img src="https://api.travis-ci.com/hellgate75/k8s-cli.svg?branch=master" alt="trevis-ci" width="98" height="20" />&nbsp;&nbsp;<a href="https://travis-ci.com/hellgate75/go-tcp-server">Check last build on Travis-CI</a>
+&nbsp;&nbsp;<img src="https://api.travis-ci.com/hellgate75/k8s-cli.svg?branch=master" alt="trevis-ci" width="98" height="20" />&nbsp;&nbsp;<a href="https://travis-ci.com/hellgate75/k8s-cli">Check last build on Travis-CI</a>
  </p>
 <p align="center">
-<image width="260" height="410" src="images/k8s-logo.png">
+<image width="450" height="260" src="images/k8s-logo.png">
 </p>
 <br/>
 <br/>
