@@ -28,7 +28,7 @@ Command provides some fetaures, as follow:
 
 * `-command check` (cluster, node, instance) Verifies with kube-ctl commands the availability of the cluster, node cluster, etc...
 
-* `-command install` Install charts from a list to the node
+* `-command prepare` Prepare a spacific  instance environment for installation purposes
 
 * `-command help` Shows commands or command details (if used help <command>)
 
