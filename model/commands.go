@@ -6,18 +6,18 @@ import (
 )
 
 type Cluster struct {
-	Name		string			`yaml:"name" json:"name"`
-	ClusterFile	string			`yaml:"kubeConfig" json:"kubeConfig"`
-	Folder		string			`yaml:"folder" json:"folder"`
-	Nodes		[]Node			`yaml:"nodes" json:"nodes"`
+	Name        string `yaml:"name" json:"name"`
+	ClusterFile string `yaml:"kubeConfig" json:"kubeConfig"`
+	Folder      string `yaml:"folder" json:"folder"`
+	Nodes       []Node `yaml:"nodes" json:"nodes"`
 }
 
 func NewCluster(name string, file string, folder string) Cluster {
 	return Cluster{
-		Name: name,
+		Name:        name,
 		ClusterFile: file,
-		Folder: folder,
-		Nodes: make([]Node, 0),
+		Folder:      folder,
+		Nodes:       make([]Node, 0),
 	}
 }
 
@@ -41,7 +41,6 @@ func (c *Cluster) IndexOf(name string) int {
 	return -1
 }
 
-
 func (c *Cluster) IndexByHost(hostname string) int {
 	nmLow := strings.ToLower(hostname)
 	for index, n := range c.Nodes {
@@ -64,7 +63,7 @@ func (c *Cluster) ContainsHost(host string) bool {
 
 func (c *Cluster) ContainsFree() bool {
 	for _, n := range c.Nodes {
-		if n.Free > 0 {
+		if n.FreeSlots() > 0 {
 			return true
 		}
 	}
@@ -96,7 +95,7 @@ func (c *Cluster) GetByHost(host string) []Node {
 func (c *Cluster) GetSlotsFree() []Node {
 	var nodes = make([]Node, 0)
 	for _, n := range c.Nodes {
-		if n.Free > 0 {
+		if n.FreeSlots() > 0 {
 			nodes = append(nodes, n)
 		}
 	}
@@ -105,7 +104,7 @@ func (c *Cluster) GetSlotsFree() []Node {
 
 func (c *Cluster) Remove(index int) bool {
 	if index < len(c.Nodes) {
-		if index > 0 && index < (len(c.Nodes) -1) {
+		if index > 0 && index < (len(c.Nodes)-1) {
 			var newArr = make([]Node, 0)
 			newArr = append(newArr, c.Nodes[:index]...)
 			newArr = append(newArr, c.Nodes[index+1:]...)
@@ -113,7 +112,7 @@ func (c *Cluster) Remove(index int) bool {
 		} else if index == 0 {
 			c.Nodes = c.Nodes[1:]
 		} else {
-			c.Nodes = c.Nodes[:(len(c.Nodes)-1)]
+			c.Nodes = c.Nodes[:(len(c.Nodes) - 1)]
 		}
 		return true
 	}
@@ -131,9 +130,32 @@ func (c *Cluster) UpdateNode(n Node) bool {
 	return false
 }
 
+func (c *Cluster) FreeSlots() int {
+	var value = 0
+	for _, nd := range c.Nodes {
+		value += nd.FreeSlots()
+	}
+	return value
+}
+
+func (c *Cluster) UsedSlots() int {
+	var value = 0
+	for _, nd := range c.Nodes {
+		value += nd.UsedSlots()
+	}
+	return value
+}
+
+func (c *Cluster) TotalSlots() int {
+	var value = 0
+	for _, nd := range c.Nodes {
+		value += nd.Slots
+	}
+	return value
+}
 
 type ClusterData struct {
-	Clusters	[]Cluster	`yaml:"clusters" json:"clusters"`
+	Clusters []Cluster `yaml:"clusters" json:"clusters"`
 }
 
 func (cd *ClusterData) UpdateCluster(cl Cluster) bool {
@@ -159,7 +181,7 @@ func (cd *ClusterData) Contains(name string) bool {
 
 func (cd *ClusterData) Remove(index int) bool {
 	if index < len(cd.Clusters) {
-		if index > 0 && index < (len(cd.Clusters) -1) {
+		if index > 0 && index < (len(cd.Clusters)-1) {
 			var newArr = make([]Cluster, 0)
 			newArr = append(newArr, cd.Clusters[:index]...)
 			newArr = append(newArr, cd.Clusters[index+1:]...)
@@ -167,7 +189,7 @@ func (cd *ClusterData) Remove(index int) bool {
 		} else if index == 0 {
 			cd.Clusters = cd.Clusters[1:]
 		} else {
-			cd.Clusters = cd.Clusters[:(len(cd.Clusters)-1)]
+			cd.Clusters = cd.Clusters[:(len(cd.Clusters) - 1)]
 		}
 		return true
 	}
@@ -194,23 +216,18 @@ func (cd *ClusterData) Get(name string) (Cluster, bool) {
 	return Cluster{}, false
 }
 
-
 type Node struct {
-	Name		string			`yaml:"name" json:"name"`
-	Host		string			`yaml:"hostname" json:"hostname"`
-	Slots		int				`yaml:"slots" json:"slots"`
-	Used		int				`yaml:"usedSlots" json:"usedSlots"`
-	Free		int				`yaml:"freeSlots" json:"freeSlots"`
-	Instances	[]Instance		`yaml:"instances" json:"instances"`
+	Name      string     `yaml:"name" json:"name"`
+	Host      string     `yaml:"hostname" json:"hostname"`
+	Slots     int        `yaml:"slots" json:"slots"`
+	Instances []Instance `yaml:"instances" json:"instances"`
 }
 
 func NewNode(name string, host string, slots int) Node {
 	return Node{
-		Name: name,
-		Host: host,
-		Slots: slots,
-		Used: 0,
-		Free: slots,
+		Name:      name,
+		Host:      host,
+		Slots:     slots,
 		Instances: make([]Instance, 0),
 	}
 }
@@ -245,7 +262,13 @@ func (nd *Node) GetByName(name string) (Instance, bool) {
 	return Instance{}, false
 }
 
+func (nd *Node) FreeSlots() int {
+	return nd.Slots - len(nd.Instances)
+}
 
+func (nd *Node) UsedSlots() int {
+	return len(nd.Instances)
+}
 
 func (nd *Node) GetByNamespace(namespace string) (Instance, bool) {
 	nsLow := strings.ToLower(namespace)
@@ -269,7 +292,7 @@ func (nd *Node) GetByStatus(status Status) []Instance {
 
 func (nd *Node) Remove(index int) bool {
 	if index < len(nd.Instances) {
-		if index > 0 && index < (len(nd.Instances) -1) {
+		if index > 0 && index < (len(nd.Instances)-1) {
 			var newArr = make([]Instance, 0)
 			newArr = append(newArr, nd.Instances[:index]...)
 			newArr = append(newArr, nd.Instances[index+1:]...)
@@ -277,7 +300,7 @@ func (nd *Node) Remove(index int) bool {
 		} else if index == 0 {
 			nd.Instances = nd.Instances[1:]
 		} else {
-			nd.Instances = nd.Instances[:(len(nd.Instances)-1)]
+			nd.Instances = nd.Instances[:(len(nd.Instances) - 1)]
 		}
 		return true
 	}
@@ -297,25 +320,26 @@ func (nd *Node) UpdateInstance(i Instance) bool {
 
 type Status string
 
-const(
-	Created		Status = "CREATED"
-	Ready		Status = "READY"
-	Deployed	Status = "DEPLOYED"
-	Unhealty	Status = "UNHEALTHY"
+const (
+	Created  Status = "CREATED"
+	Ready    Status = "READY"
+	Deployed Status = "DEPLOYED"
+	Unhealty Status = "UNHEALTHY"
 )
 
 type Instance struct {
-	Name		string			`yaml:"name" json:"name"`
-	Namespace	string			`yaml:"namespace" json:"namespace"`
-	File		string			`yaml:"file" json:"file"`
-	Status		Status			`yaml:"status" json:"status"`
-	Index		int				`yaml:"index" json:"index"`
+	Name      string `yaml:"name" json:"name"`
+	Namespace string `yaml:"namespace" json:"namespace"`
+	File      string `yaml:"file" json:"file"`
+	Status    Status `yaml:"status" json:"status"`
+	Index     int    `yaml:"index" json:"index"`
 }
+
 func NewInstance(name string, namespace string, clusterName string, nodeName string) Instance {
 	return Instance{
-		Name: name,
+		Name:      name,
 		Namespace: namespace,
-		File: fmt.Sprintf("%s-%s-%s-%s.env", clusterName, nodeName, name, namespace),
-		Status: Created,
+		File:      fmt.Sprintf("%s-%s-%s-%s.env", clusterName, nodeName, name, namespace),
+		Status:    Created,
 	}
 }

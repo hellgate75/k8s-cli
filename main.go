@@ -20,6 +20,7 @@ var clusterConfigYaml string
 var nodeName string
 var hostName string
 var nodeSlots int
+var verifySlots bool
 var prepareationName string
 var namespace string
 
@@ -31,6 +32,7 @@ func initHelp() {
 	flag.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
 	flag.StringVar(&subsubcommand, "details", "", "Required executor action subject (cluster, node, instance) only in case of help")
 	flag.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
+	flag.BoolVar(&verifySlots, "verify-slots", false, "Retrun information about Free slots fro nodes and clusters")
 	flag.StringVar(&clusterName, "cluster-name", "default", "Cluster name")
 	flag.StringVar(&clusterConfigYaml, "kubectl-yaml-file", "", "Kubectl Yaml file")
 	flag.StringVar(&nodeName, "node-name", "", "Cluster node name")
@@ -46,6 +48,7 @@ func showCommandInit(subCommand string) *flag.FlagSet {
 	fset.StringVar(&subcommand, "subject", "cluster", "Required executor action subject (clusters, nodes, instances)")
 	fset.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
 	flag.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
+	flag.BoolVar(&verifySlots, "verify-slots", false, "Retrun information about Free slots fro nodes and clusters")
 	if subCommand == "nodes" || subCommand == "instances" {
 		fset.StringVar(&clusterName, "cluster-name", "default", "Cluster name")
 		if subCommand == "instances" {
@@ -54,7 +57,6 @@ func showCommandInit(subCommand string) *flag.FlagSet {
 	}
 	return fset
 }
-
 
 func addCommandInit(subCommand string) *flag.FlagSet {
 	fset := flag.NewFlagSet(fmt.Sprintf("k8s-cli (cmd: add %s)", subCommand), flag.ContinueOnError)
@@ -122,7 +124,7 @@ func prepareCommandInit(subCommand string) *flag.FlagSet {
 	return fset
 }
 
-func main()  {
+func main() {
 	initHelp()
 	var args = []string(os.Args)
 	flag.Parse()
@@ -158,21 +160,22 @@ func main()  {
 		}
 	case "show", "add", "remove", "verify", "prepare":
 		exec := executor.New(dataDir, model.CommandRequest{
-			Command: command,
-			SubCommand: subcommand,
+			Command:     command,
+			SubCommand:  subcommand,
 			ClusterName: clusterName,
 			KubeCtlFile: clusterConfigYaml,
-			NodeName: nodeName,
-			HostName: hostName,
-			NodeSlots: nodeSlots,
-			Instance: prepareationName,
-			Namespace: namespace,
-			Format: common.FixOutputType(format),
+			NodeName:    nodeName,
+			HostName:    hostName,
+			NodeSlots:   nodeSlots,
+			Instance:    prepareationName,
+			Namespace:   namespace,
+			Format:      common.FixOutputType(format),
+			VerifySlots: verifySlots,
 		})
 		err := exec.Init()
 		if err != nil {
-			errResp:=model.ErrorResponse{
-				Code: 401,
+			errResp := model.ErrorResponse{
+				Code:    401,
 				Message: fmt.Sprintf("%v", err),
 			}
 			var dt []byte
@@ -185,8 +188,8 @@ func main()  {
 		}
 		err = exec.Execute()
 		if err != nil {
-			errResp:=model.ErrorResponse{
-				Code: 402,
+			errResp := model.ErrorResponse{
+				Code:    402,
 				Message: fmt.Sprintf("%v", err),
 			}
 			var dt []byte
