@@ -28,7 +28,7 @@ var namespace string
 var dataDir string
 
 func initHelp() {
-	flag.StringVar(&command, "command", "help", "Required executor action (show, add, remove, check, prepare. ensure, help)")
+	flag.StringVar(&command, "command", "help", "Required executor action (show, add, remove, verify, prepare. ensure, help)")
 	flag.StringVar(&subcommand, "subject", "", "Required executor action subject (cluster, node, instance) or executor in case of help")
 	flag.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
 	flag.StringVar(&subsubcommand, "details", "", "Required executor action subject (cluster, node, instance) only in case of help")
@@ -108,10 +108,10 @@ func removeCommandInit(subCommand string) *flag.FlagSet {
 	return fset
 }
 
-func checkCommandInit(subCommand string) *flag.FlagSet {
+func verifyCommandInit(subCommand string) *flag.FlagSet {
 	fmt.Println("Verify healthy state of an existing cluster, node or instance:")
-	fset := flag.NewFlagSet(fmt.Sprintf("k8s-cli (cmd: check %s)", subCommand), flag.ContinueOnError)
-	fset.StringVar(&command, "command", "check", "Required executor action : check")
+	fset := flag.NewFlagSet(fmt.Sprintf("k8s-cli (cmd: verify %s)", subCommand), flag.ContinueOnError)
+	fset.StringVar(&command, "command", "verify", "Required executor action : verify")
 	fset.StringVar(&subcommand, "subject", "cluster", "Required executor action subject (cluster, node, instance)")
 	fset.StringVar(&clusterName, "cluster-name", "default", "Cluster name")
 	fset.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
@@ -202,8 +202,8 @@ func main() {
 			fset := removeCommandInit(subsubcommand)
 			fset.Parse(args)
 			fset.Usage()
-		case "check":
-			fset := checkCommandInit(subsubcommand)
+		case "verify":
+			fset := verifyCommandInit(subsubcommand)
 			fset.Parse(args)
 			fset.Usage()
 		case "prepare":
