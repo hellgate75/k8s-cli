@@ -47,3 +47,9 @@ type HealthCheckResponse struct {
 	Message  string `yaml:"message" json:"message"`
 	Status   Status `yaml:"status" json:"status"`
 }
+
+type FreeNodeResponse struct {
+	Cluster   string `yaml:"clusterName" json:"clusterName"`
+	Node      string `yaml:"nodeName" json:"nodeName"`
+	Available bool   `yaml:"available" json:"available"`
+}

@@ -13,9 +13,9 @@ import (
 
 type Executor struct {
 	sync.Mutex
-	baseFolder		string
-	request			model.CommandRequest
-	internal		*model.ClusterData
+	baseFolder string
+	request    model.CommandRequest
+	internal   *model.ClusterData
 }
 
 func (c Executor) commit() error {
@@ -40,7 +40,6 @@ func (c Executor) commit() error {
 	}
 	return err
 }
-
 
 func (c Executor) load() error {
 	var err error
@@ -106,6 +105,8 @@ func (c Executor) Execute() error {
 		err = c.verify()
 	case "prepare":
 		err = c.prepare()
+	case "ensure":
+		err = c.ensure()
 	default:
 		err = errors.New(fmt.Sprintf("Unknown executor: <%s>", c.request.Command))
 	}
@@ -125,7 +126,7 @@ func (c Executor) print(i interface{}) {
 func New(baseFolder string, request model.CommandRequest) Executor {
 	return Executor{
 		baseFolder: baseFolder,
-		request: request,
+		request:    request,
 		internal: &model.ClusterData{
 			Clusters: make([]model.Cluster, 0),
 		},

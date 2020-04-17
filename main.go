@@ -27,7 +27,7 @@ var namespace string
 var dataDir string
 
 func initHelp() {
-	flag.StringVar(&command, "command", "help", "Required executor action (show, add, remove, check, prepare, help)")
+	flag.StringVar(&command, "command", "help", "Required executor action (show, add, remove, check, prepare. ensure, help)")
 	flag.StringVar(&subcommand, "subject", "", "Required executor action subject (cluster, node, instance) or executor in case of help")
 	flag.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
 	flag.StringVar(&subsubcommand, "details", "", "Required executor action subject (cluster, node, instance) only in case of help")
@@ -55,6 +55,15 @@ func showCommandInit(subCommand string) *flag.FlagSet {
 			fset.StringVar(&nodeName, "node-name", "", "Cluster node name")
 		}
 	}
+	return fset
+}
+func ensureCommandInit(subCommand string) *flag.FlagSet {
+	fset := flag.NewFlagSet(fmt.Sprintf("k8s-cli (cmd: ensure %s)", subCommand), flag.ContinueOnError)
+	fset.StringVar(&command, "command", "ensure", "Required executor action : ensure")
+	fset.StringVar(&subcommand, "subject", "cluster", "Optional executor action subject (instance)")
+	fset.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
+	flag.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
+	fset.StringVar(&clusterName, "cluster-name", "default", "Cluster name")
 	return fset
 }
 
@@ -142,6 +151,10 @@ func main() {
 			fset := addCommandInit(subsubcommand)
 			fset.Parse(args)
 			fset.Usage()
+		case "ensure":
+			fset := ensureCommandInit(subsubcommand)
+			fset.Parse(args)
+			fset.Usage()
 		case "remove":
 			fset := removeCommandInit(subsubcommand)
 			fset.Parse(args)
@@ -158,7 +171,7 @@ func main() {
 			fmt.Printf("Requested help of unknown subject: %s\n", subcommand)
 			flag.Usage()
 		}
-	case "show", "add", "remove", "verify", "prepare":
+	case "show", "add", "remove", "verify", "ensure", "prepare":
 		exec := executor.New(dataDir, model.CommandRequest{
 			Command:     command,
 			SubCommand:  subcommand,

@@ -25,15 +25,15 @@ func (c Executor) prepareInstance() error {
 	if c.request.ClusterName == "" && c.request.NodeName == "" {
 		return errors.New(fmt.Sprintf("Error, could not prepare a cluster node instances without cluster name and node name information"))
 	}
-	if ! c.internal.Contains(c.request.ClusterName) {
+	if !c.internal.Contains(c.request.ClusterName) {
 		return errors.New(fmt.Sprintf("Error, could not prepare a cluster node instances, cluster name %s doesn't exists", c.request.ClusterName))
 	}
 	var cl model.Cluster
 	var test bool
-	if cl, test = c.internal.Get(c.request.ClusterName); ! test {
+	if cl, test = c.internal.Get(c.request.ClusterName); !test {
 		return errors.New(fmt.Sprintf("Error, could not prepare a cluster node instances, cluster name %s isn't available", c.request.ClusterName))
 	} else {
-		var nds =[]model.Node{}
+		var nds = []model.Node{}
 		if nds = cl.GetByName(c.request.NodeName); len(nds) < 1 {
 			return errors.New(fmt.Sprintf("Error, could not prepare a cluster node instances, cluster name %s has no node named %s", c.request.ClusterName, c.request.NodeName))
 		} else {
@@ -44,14 +44,14 @@ func (c Executor) prepareInstance() error {
 			}
 			kubefile := fmt.Sprintf("%s%c%s%c%s", c.baseFolder, os.PathSeparator, cl.Folder, os.PathSeparator, cl.ClusterFile)
 			path := fmt.Sprintf("%s%c%s%c%s", c.baseFolder, os.PathSeparator, cl.Folder, os.PathSeparator, inst.File)
-			if _, err := os.Stat(path); err == nil{
+			if _, err := os.Stat(path); err == nil {
 				err = os.Remove(path)
 				if err != nil {
 					return err
 				}
 			}
 			folder := fmt.Sprintf("%s%c%s%c%s-%s", c.baseFolder, os.PathSeparator, cl.Folder, os.PathSeparator, inst.Namespace, inst.Name)
-			if _, err := os.Stat(folder); err != nil{
+			if _, err := os.Stat(folder); err != nil {
 				err = os.MkdirAll(folder, 0660)
 				if err != nil {
 					return err
@@ -71,14 +71,14 @@ func (c Executor) prepareInstance() error {
 				for _, nd0 := range cl.Nodes {
 					for _, ints := range nd0.Instances {
 						if ints.ClusterIndex > 0 && ints.Name != inst.Name {
-							mp[ints.ClusterIndex]=true
+							mp[ints.ClusterIndex] = true
 						}
 					}
 				}
 				for mp[readyClusterIdx] {
 					readyClusterIdx += 1
 				}
-				inst.ClusterIndex=readyClusterIdx
+				inst.ClusterIndex = readyClusterIdx
 				_ = nd.UpdateInstance(inst)
 				_ = cl.UpdateNode(nd)
 				c.internal.UpdateCluster(cl)
@@ -94,13 +94,13 @@ func (c Executor) prepareInstance() error {
 				mp := make(map[int]bool)
 				for _, ints := range nd.Instances {
 					if ints.Index > 0 && ints.Name != inst.Name {
-						mp[ints.Index]=true
+						mp[ints.Index] = true
 					}
 				}
 				for mp[readyIdx] {
 					readyIdx += 1
 				}
-				inst.Index=readyIdx
+				inst.Index = readyIdx
 				_ = nd.UpdateInstance(inst)
 				_ = cl.UpdateNode(nd)
 				c.internal.UpdateCluster(cl)
@@ -134,7 +134,7 @@ func (c Executor) prepareInstance() error {
 				}
 			}
 			c.print(model.SuccessTypeResponse{
-				Type: "Instance",
+				Type:    "Instance",
 				SubType: "Preparation",
 				Content: path,
 			})
@@ -142,4 +142,3 @@ func (c Executor) prepareInstance() error {
 	}
 	return nil
 }
-
