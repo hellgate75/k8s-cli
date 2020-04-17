@@ -30,6 +30,8 @@ Command provides some fetaures, as follow:
 
 * `-command prepare` Prepare a spacific  instance environment for installation purposes
 
+* `-command ensure` Verify first node with availability to deploy an helm instance, not taken yet
+
 * `-command help` Shows commands or command details (if used help <command>)
 
 

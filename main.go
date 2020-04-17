@@ -9,6 +9,7 @@ import (
 	"github.com/hellgate75/k8s-cli/model"
 	"os"
 	"strings"
+	"time"
 )
 
 var format string
@@ -27,12 +28,13 @@ var namespace string
 var dataDir string
 
 func initHelp() {
+	fmt.Println("Generic help:")
 	flag.StringVar(&command, "command", "help", "Required executor action (show, add, remove, check, prepare. ensure, help)")
 	flag.StringVar(&subcommand, "subject", "", "Required executor action subject (cluster, node, instance) or executor in case of help")
 	flag.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
 	flag.StringVar(&subsubcommand, "details", "", "Required executor action subject (cluster, node, instance) only in case of help")
 	flag.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
-	flag.BoolVar(&verifySlots, "verify-slots", false, "Retrun information about Free slots fro nodes and clusters")
+	flag.BoolVar(&verifySlots, "verify-slots", false, "Retrun information about Free slots for nodes and clusters")
 	flag.StringVar(&clusterName, "cluster-name", "default", "Cluster name")
 	flag.StringVar(&clusterConfigYaml, "kubectl-yaml-file", "", "Kubectl Yaml file")
 	flag.StringVar(&nodeName, "node-name", "", "Cluster node name")
@@ -43,12 +45,13 @@ func initHelp() {
 }
 
 func showCommandInit(subCommand string) *flag.FlagSet {
+	fmt.Println("Show clusters, nodes or instances details:")
 	fset := flag.NewFlagSet(fmt.Sprintf("k8s-cli (cmd: show %s)", subCommand), flag.ContinueOnError)
 	fset.StringVar(&command, "command", "show", "Required executor action : add")
 	fset.StringVar(&subcommand, "subject", "cluster", "Required executor action subject (clusters, nodes, instances)")
 	fset.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
 	flag.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
-	flag.BoolVar(&verifySlots, "verify-slots", false, "Retrun information about Free slots fro nodes and clusters")
+	flag.BoolVar(&verifySlots, "verify-slots", false, "Retrun information about Free slots for nodes and clusters")
 	if subCommand == "nodes" || subCommand == "instances" {
 		fset.StringVar(&clusterName, "cluster-name", "default", "Cluster name")
 		if subCommand == "instances" {
@@ -58,6 +61,7 @@ func showCommandInit(subCommand string) *flag.FlagSet {
 	return fset
 }
 func ensureCommandInit(subCommand string) *flag.FlagSet {
+	fmt.Println("Calculate first node available for a new instance:")
 	fset := flag.NewFlagSet(fmt.Sprintf("k8s-cli (cmd: ensure %s)", subCommand), flag.ContinueOnError)
 	fset.StringVar(&command, "command", "ensure", "Required executor action : ensure")
 	fset.StringVar(&subcommand, "subject", "cluster", "Optional executor action subject (instance)")
@@ -68,6 +72,7 @@ func ensureCommandInit(subCommand string) *flag.FlagSet {
 }
 
 func addCommandInit(subCommand string) *flag.FlagSet {
+	fmt.Println("Add a new cluster, node or instance:")
 	fset := flag.NewFlagSet(fmt.Sprintf("k8s-cli (cmd: add %s)", subCommand), flag.ContinueOnError)
 	fset.StringVar(&command, "command", "add", "Required executor action : show")
 	fset.StringVar(&subcommand, "subject", "cluster", "Required executor action subject (cluster, node, instance)")
@@ -88,6 +93,7 @@ func addCommandInit(subCommand string) *flag.FlagSet {
 }
 
 func removeCommandInit(subCommand string) *flag.FlagSet {
+	fmt.Println("Remove an existing cluster, node or instance:")
 	fset := flag.NewFlagSet(fmt.Sprintf("k8s-cli (cmd: remove %s)", subCommand), flag.ContinueOnError)
 	fset.StringVar(&command, "command", "remove", "Required executor action : remove")
 	fset.StringVar(&subcommand, "subject", "cluster", "Required executor action subject (cluster, node, instance)")
@@ -104,6 +110,7 @@ func removeCommandInit(subCommand string) *flag.FlagSet {
 }
 
 func checkCommandInit(subCommand string) *flag.FlagSet {
+	fmt.Println("Verify healthy state of an existing cluster, node or instance:")
 	fset := flag.NewFlagSet(fmt.Sprintf("k8s-cli (cmd: check %s)", subCommand), flag.ContinueOnError)
 	fset.StringVar(&command, "command", "check", "Required executor action : check")
 	fset.StringVar(&subcommand, "subject", "cluster", "Required executor action subject (cluster, node, instance)")
@@ -120,6 +127,7 @@ func checkCommandInit(subCommand string) *flag.FlagSet {
 }
 
 func prepareCommandInit(subCommand string) *flag.FlagSet {
+	fmt.Println("Prepare a deployment environment file:")
 	fset := flag.NewFlagSet(fmt.Sprintf("k8s-cli (cmd: prepare %s)", subCommand), flag.ContinueOnError)
 	fset.StringVar(&command, "command", "prepare", "Required executor action : prepare")
 	fset.StringVar(&subcommand, "subject", "cluster", "Required executor action subject (instance)")
@@ -131,6 +139,42 @@ func prepareCommandInit(subCommand string) *flag.FlagSet {
 		fset.StringVar(&prepareationName, "instance-name", "", "Cluster node instance name")
 	}
 	return fset
+}
+
+func waitApp(folder string) {
+	if _, err := os.Stat(folder); err != nil {
+		_ = os.MkdirAll(folder, 0660)
+	}
+	var lockFile = fmt.Sprintf("%s%c%s", folder, os.PathSeparator, ".lock")
+	_, err := os.Stat(lockFile)
+	for err == nil {
+		time.Sleep(5 * time.Second)
+		_, err = os.Stat(lockFile)
+	}
+}
+
+func unlockApp(folder string) bool {
+	if _, err := os.Stat(folder); err != nil {
+		_ = os.MkdirAll(folder, 0660)
+	}
+	var lockFile = fmt.Sprintf("%s%c%s", folder, os.PathSeparator, ".lock")
+	if _, err := os.Stat(lockFile); err == nil {
+		err := os.Remove(lockFile)
+		return err == nil
+	}
+	return false
+}
+
+func lockApp(folder string) bool {
+	if _, err := os.Stat(folder); err != nil {
+		_ = os.MkdirAll(folder, 0660)
+	}
+	var lockFile = fmt.Sprintf("%s%c%s", folder, os.PathSeparator, ".lock")
+	if _, err := os.Stat(lockFile); err != nil {
+		_, err := os.Create(lockFile)
+		return err == nil
+	}
+	return false
 }
 
 func main() {
@@ -172,6 +216,14 @@ func main() {
 			flag.Usage()
 		}
 	case "show", "add", "remove", "verify", "ensure", "prepare":
+		waitApp(dataDir)
+		_ = lockApp(dataDir)
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Println("Error:", r)
+			}
+			_ = unlockApp(dataDir)
+		}()
 		exec := executor.New(dataDir, model.CommandRequest{
 			Command:     command,
 			SubCommand:  subcommand,
