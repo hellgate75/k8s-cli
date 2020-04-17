@@ -4,10 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	uuid2 "github.com/satori/go.uuid"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"os"
 )
 
@@ -81,19 +79,20 @@ func CopyFile(source string, dest string) error {
 	return err
 }
 
+func getToken(lenght int) string {
+	var out = ""
+	return out
+}
+
 func GetUniqueId() string {
 	uuid, err := uuid.NewUUID()
 	if err == nil {
 		return uuid.String()
 	}
-	uuid2, err := uuid2.NewV1()
-	if err == nil {
-		return uuid2.String()
-	}
-	t1 := int64(7 * rand.Int()) + int64(11 * rand.Int())
-	t2 := int64(7 * rand.Int()) + int64(11 * rand.Int())
-	t3 := int64(7 * rand.Int()) + int64(11 * rand.Int())
-	t4 := int64(7 * rand.Int()) + int64(11 * rand.Int())
-	t5 := int64(7 * rand.Int()) + int64(11 * rand.Int())
-	return fmt.Sprintf("%v-%v-%v-%v-%v", t1, t2, t3, t4, t5)
+	t1 := getToken(8)
+	t2 := getToken(8)
+	t3 := getToken(5)
+	t4 := getToken(8)
+	t5 := getToken(8)
+	return fmt.Sprintf("%s-%s-%s-%s-%s", t1, t2, t3, t4, t5)
 }

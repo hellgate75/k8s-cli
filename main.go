@@ -49,8 +49,8 @@ func showCommandInit(subCommand string) *flag.FlagSet {
 	fset.StringVar(&command, "command", "show", "Required executor action : add")
 	fset.StringVar(&subcommand, "subject", "cluster", "Required executor action subject (clusters, nodes, instances)")
 	fset.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
-	flag.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
-	flag.BoolVar(&verifySlots, "verify-slots", false, "Retrun information about Free slots for nodes and clusters")
+	fset.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
+	fset.BoolVar(&verifySlots, "verify-slots", false, "Retrun information about Free slots for nodes and clusters")
 	if subCommand == "nodes" || subCommand == "instances" {
 		fset.StringVar(&clusterName, "cluster-name", "default", "Cluster name")
 		if subCommand == "instances" {
@@ -65,7 +65,7 @@ func ensureCommandInit(subCommand string) *flag.FlagSet {
 	fset.StringVar(&command, "command", "ensure", "Required executor action : ensure")
 	fset.StringVar(&subcommand, "subject", "cluster", "Optional executor action subject (instance)")
 	fset.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
-	flag.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
+	fset.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
 	fset.StringVar(&clusterName, "cluster-name", "default", "Cluster name")
 	return fset
 }
@@ -78,10 +78,10 @@ func addCommandInit(subCommand string) *flag.FlagSet {
 	fset.StringVar(&clusterName, "cluster-name", "default", "Cluster name")
 	fset.StringVar(&clusterConfigYaml, "kubectl-yaml-file", "", "Kubectl Yaml file")
 	fset.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
-	flag.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
+	fset.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
 	if subCommand == "node" || subCommand == "instance" {
 		fset.StringVar(&nodeName, "node-name", "", "Cluster node name")
-		flag.StringVar(&hostName, "node-host-name", "", "Cluster node host name")
+		fset.StringVar(&hostName, "node-host-name", "", "Cluster node host name")
 		fset.IntVar(&nodeSlots, "node-slots", 2, "Cluster node max number of prepareations")
 		if subCommand == "instance" {
 			fset.StringVar(&prepareationName, "instance-name", "", "Cluster node instance name")
@@ -132,7 +132,7 @@ func prepareCommandInit(subCommand string) *flag.FlagSet {
 	fset.StringVar(&subcommand, "subject", "cluster", "Required executor action subject (instance)")
 	fset.StringVar(&clusterName, "cluster-name", "default", "Cluster name")
 	fset.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
-	flag.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
+	fset.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
 	if subCommand == "instance" {
 		fset.StringVar(&nodeName, "node-name", "", "Cluster node name")
 		fset.StringVar(&prepareationName, "instance-name", "", "Cluster node instance name")
