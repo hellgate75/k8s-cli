@@ -63,6 +63,30 @@ func (c Executor) prepareInstance() error {
 				folder = strings.ReplaceAll(folder, fmt.Sprintf("%c", os.PathSeparator), sep)
 				kubefile = strings.ReplaceAll(kubefile, fmt.Sprintf("%c", os.PathSeparator), sep)
 			}
+			readyClusterIdx := 1
+			if inst.ClusterIndex > 0 {
+				readyClusterIdx = inst.ClusterIndex
+			} else {
+				mp := make(map[int]bool)
+				for _, nd0 := range cl.Nodes {
+					for _, ints := range nd0.Instances {
+						if ints.ClusterIndex > 0 && ints.Name != inst.Name {
+							mp[ints.ClusterIndex]=true
+						}
+					}
+				}
+				for mp[readyClusterIdx] {
+					readyClusterIdx += 1
+				}
+				inst.ClusterIndex=readyClusterIdx
+				_ = nd.UpdateInstance(inst)
+				_ = cl.UpdateNode(nd)
+				c.internal.UpdateCluster(cl)
+				if err := c.commit(); err != nil {
+					return err
+				}
+			}
+
 			readyIdx := 1
 			if inst.Index > 0 {
 				readyIdx = inst.Index
@@ -93,6 +117,7 @@ func (c Executor) prepareInstance() error {
 			buff.Write([]byte("KUBECTL_CONFIG_FILE=$KUBECONFIG\n"))
 			buff.Write([]byte("alias kube-ns=\"kubectl $KUBECTL_BASE\"\n"))
 			buff.Write([]byte("alias helm-ns=\"helm --kubeconfig=$KUBECONFIG --namespace=$NAMESPACE --registry-config $HELM_DIR/registry.json --repository-cache $HELM_DIR/repository --repository-config $HELM_DIR/repositories.yaml\"\n"))
+			buff.Write([]byte(fmt.Sprintf("CLUSTER_INDEX=%v\n", readyClusterIdx)))
 			buff.Write([]byte(fmt.Sprintf("NODE_INDEX=%v\n", readyIdx)))
 			buff.Write([]byte(fmt.Sprintf("NODE_HOST=%s\n", nd.Host)))
 			err := ioutil.WriteFile(path, buff.Bytes(), 0664)

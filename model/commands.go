@@ -328,11 +328,12 @@ const (
 )
 
 type Instance struct {
-	Name      string `yaml:"name" json:"name"`
-	Namespace string `yaml:"namespace" json:"namespace"`
-	File      string `yaml:"file" json:"file"`
-	Status    Status `yaml:"status" json:"status"`
-	Index     int    `yaml:"index" json:"index"`
+	Name      		string `yaml:"name" json:"name"`
+	Namespace 		string `yaml:"namespace" json:"namespace"`
+	File      		string `yaml:"file" json:"file"`
+	Status    		Status `yaml:"status" json:"status"`
+	Index     		int    `yaml:"index" json:"index"`
+	ClusterIndex    int    `yaml:"clusterIndex" json:"clusterIndex"`
 }
 
 func NewInstance(name string, namespace string, clusterName string, nodeName string) Instance {
