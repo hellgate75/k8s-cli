@@ -62,8 +62,8 @@ func (c Executor) addCluster() error {
 }
 
 func (c Executor) addNode() error {
-	if c.request.ClusterName == "" || c.request.NodeName == "" {
-		return errors.New(fmt.Sprintf("Error, could not create a cluster node without name and node name information"))
+	if c.request.ClusterName == "" || c.request.NodeName == "" || c.request.HostName == "" {
+		return errors.New(fmt.Sprintf("Error, could not create a cluster node without name, node name and hostname information"))
 	}
 	if !c.internal.Contains(c.request.ClusterName) {
 		return errors.New(fmt.Sprintf("Error, could not create a cluster node, cluster name %s doesn't exists", c.request.ClusterName))
@@ -100,8 +100,8 @@ func (c Executor) addNode() error {
 }
 
 func (c Executor) addInstance() error {
-	if c.request.ClusterName == "" || c.request.NodeName == "" || c.request.Instance == "" {
-		return errors.New(fmt.Sprintf("Error, could not create a cluster node instance without name, node name and instance name information"))
+	if c.request.ClusterName == "" || c.request.NodeName == "" || c.request.Instance == ""  || c.request.Namespace == "" {
+		return errors.New(fmt.Sprintf("Error, could not create a cluster node instance without name, node name, instance name and namespace information"))
 	}
 	if !c.internal.Contains(c.request.ClusterName) {
 		return errors.New(fmt.Sprintf("Error, could not create a cluster node, cluster name %s doesn't exists", c.request.ClusterName))
