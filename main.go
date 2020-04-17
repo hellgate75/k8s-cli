@@ -28,7 +28,6 @@ var namespace string
 var dataDir string
 
 func initHelp() {
-	fmt.Println("Generic help:")
 	flag.StringVar(&command, "command", "help", "Required executor action (show, add, remove, check, prepare. ensure, help)")
 	flag.StringVar(&subcommand, "subject", "", "Required executor action subject (cluster, node, instance) or executor in case of help")
 	flag.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
