@@ -97,6 +97,8 @@ func (c Executor) Execute() error {
 	switch strings.ToLower(c.request.Command) {
 	case "show":
 		err = c.show()
+	case "details":
+		err = c.details()
 	case "add":
 		err = c.add()
 	case "remove":

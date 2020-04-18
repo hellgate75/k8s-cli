@@ -22,13 +22,13 @@ var nodeName string
 var hostName string
 var nodeSlots int
 var verifySlots bool
-var prepareationName string
+var instanceName string
 var namespace string
 
 var dataDir string
 
 func initHelp() {
-	flag.StringVar(&command, "command", "help", "Required executor action (show, add, remove, verify, prepare. ensure, help)")
+	flag.StringVar(&command, "command", "help", "Required executor action (show, details, add, remove, verify, prepare. ensure, help)")
 	flag.StringVar(&subcommand, "subject", "", "Required executor action subject (cluster, node, instance) or executor in case of help")
 	flag.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
 	flag.StringVar(&subsubcommand, "details", "", "Required executor action subject (cluster, node, instance) only in case of help")
@@ -39,7 +39,7 @@ func initHelp() {
 	flag.StringVar(&nodeName, "node-name", "", "Cluster node name")
 	flag.StringVar(&hostName, "node-host-name", "", "Cluster node host name")
 	flag.IntVar(&nodeSlots, "node-slots", 2, "Cluster node max number of prepareations")
-	flag.StringVar(&prepareationName, "instance-name", "", "Cluster node instance name")
+	flag.StringVar(&instanceName, "instance-name", "", "Cluster node instance name")
 	flag.StringVar(&namespace, "namespace", "", "Cluster node instance namespace name")
 }
 
@@ -59,6 +59,27 @@ func showCommandInit(subCommand string) *flag.FlagSet {
 	}
 	return fset
 }
+
+
+func detailsCommandInit(subCommand string) *flag.FlagSet {
+	fmt.Println("Show specific cluster, node or instance details:")
+	fset := flag.NewFlagSet(fmt.Sprintf("k8s-cli (cmd: show %s)", subCommand), flag.ContinueOnError)
+	fset.StringVar(&command, "command", "show", "Required executor action : add")
+	fset.StringVar(&subcommand, "subject", "cluster", "Required executor action subject (clusters, nodes, instances)")
+	fset.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
+	fset.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
+	fset.BoolVar(&verifySlots, "verify-slots", false, "Retrun information about Free slots for nodes and clusters")
+	fset.StringVar(&clusterName, "cluster-name", "default", "Cluster name")
+	if subCommand == "node" || subCommand == "instance" {
+		fset.StringVar(&nodeName, "node-name", "", "Cluster node name")
+		if subCommand == "instances" {
+			fset.StringVar(&instanceName, "instance-name", "", "Cluster node name")
+		}
+	}
+	return fset
+}
+
+
 func ensureCommandInit(subCommand string) *flag.FlagSet {
 	fmt.Println("Calculate first node available for a new instance:")
 	fset := flag.NewFlagSet(fmt.Sprintf("k8s-cli (cmd: ensure %s)", subCommand), flag.ContinueOnError)
@@ -84,7 +105,7 @@ func addCommandInit(subCommand string) *flag.FlagSet {
 		fset.StringVar(&hostName, "node-host-name", "", "Cluster node host name")
 		fset.IntVar(&nodeSlots, "node-slots", 2, "Cluster node max number of prepareations")
 		if subCommand == "instance" {
-			fset.StringVar(&prepareationName, "instance-name", "", "Cluster node instance name")
+			fset.StringVar(&instanceName, "instance-name", "", "Cluster node instance name")
 			fset.StringVar(&namespace, "namespace", "", "Cluster node instance namespace name")
 		}
 	}
@@ -102,7 +123,7 @@ func removeCommandInit(subCommand string) *flag.FlagSet {
 	if subCommand == "node" || subCommand == "instance" {
 		fset.StringVar(&nodeName, "node-name", "", "Cluster node name")
 		if subCommand == "instance" {
-			fset.StringVar(&prepareationName, "instance-name", "", "Cluster node instance name")
+			fset.StringVar(&instanceName, "instance-name", "", "Cluster node instance name")
 		}
 	}
 	return fset
@@ -119,7 +140,7 @@ func verifyCommandInit(subCommand string) *flag.FlagSet {
 	if subCommand == "node" || subCommand == "instance" {
 		fset.StringVar(&nodeName, "node-name", "", "Cluster node name")
 		if subCommand == "instance" {
-			fset.StringVar(&prepareationName, "instance-name", "", "Cluster node instance name")
+			fset.StringVar(&instanceName, "instance-name", "", "Cluster node instance name")
 		}
 	}
 	return fset
@@ -135,7 +156,7 @@ func prepareCommandInit(subCommand string) *flag.FlagSet {
 	fset.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
 	if subCommand == "instance" {
 		fset.StringVar(&nodeName, "node-name", "", "Cluster node name")
-		fset.StringVar(&prepareationName, "instance-name", "", "Cluster node instance name")
+		fset.StringVar(&instanceName, "instance-name", "", "Cluster node instance name")
 	}
 	return fset
 }
@@ -170,7 +191,12 @@ func lockApp(folder string) bool {
 	}
 	var lockFile = fmt.Sprintf("%s%c%s", folder, os.PathSeparator, ".lock")
 	if _, err := os.Stat(lockFile); err != nil {
-		_, err := os.Create(lockFile)
+		f, err := os.Create(lockFile)
+		defer func() {
+			if f != nil && err == nil {
+				f.Close()
+			}
+		}()
 		return err == nil
 	}
 	return false
@@ -188,6 +214,10 @@ func main() {
 		switch strings.ToLower(subcommand) {
 		case "show":
 			fset := showCommandInit(subsubcommand)
+			fset.Parse(args)
+			fset.Usage()
+		case "details":
+			fset := detailsCommandInit(subsubcommand)
 			fset.Parse(args)
 			fset.Usage()
 		case "add":
@@ -214,7 +244,7 @@ func main() {
 			fmt.Printf("Requested help of unknown subject: %s\n", subcommand)
 			flag.Usage()
 		}
-	case "show", "add", "remove", "verify", "ensure", "prepare":
+	case "show", "details", "add", "remove", "verify", "ensure", "prepare":
 		waitApp(dataDir)
 		_ = lockApp(dataDir)
 		defer func() {
@@ -231,7 +261,7 @@ func main() {
 			NodeName:    nodeName,
 			HostName:    hostName,
 			NodeSlots:   nodeSlots,
-			Instance:    prepareationName,
+			Instance:    instanceName,
 			Namespace:   namespace,
 			Format:      common.FixOutputType(format),
 			VerifySlots: verifySlots,

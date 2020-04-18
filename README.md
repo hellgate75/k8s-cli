@@ -20,7 +20,9 @@ Provide easy to use infrastructure tools that collect information about K8S clus
 
 Command provides some fetaures, as follow:
 
-* `-command show` (cluster, nodes, history, instances) - Provides the list of available cluster, clusters, nodes, installations or the history of commands
+* `-command show` (cluster, nodes, instances) - Provides the list of available cluster, clusters, nodes, installations
+
+* `-command details` (cluste, node, instance) - Provides the list of specific cluster, cluster, node, installation
 
 * `-command add` (cluster, node, instance) Add  a node or an instance to a node
 
