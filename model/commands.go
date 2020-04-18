@@ -31,6 +31,30 @@ func (c *Cluster) Contains(name string) bool {
 	return false
 }
 
+func (c *Cluster) ContainsInstance(name string) bool {
+	nmLow := strings.ToLower(name)
+	for _, n := range c.Nodes {
+		for _, i := range n.Instances {
+			if strings.ToLower(i.Name) == nmLow {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (c *Cluster) ContainsNameSpace(name string) bool {
+	nmLow := strings.ToLower(name)
+	for _, n := range c.Nodes {
+		for _, i := range n.Instances {
+			if strings.ToLower(i.Namespace) == nmLow {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (c *Cluster) IndexOf(name string) int {
 	nmLow := strings.ToLower(name)
 	for index, n := range c.Nodes {
@@ -328,12 +352,12 @@ const (
 )
 
 type Instance struct {
-	Name      		string `yaml:"name" json:"name"`
-	Namespace 		string `yaml:"namespace" json:"namespace"`
-	File      		string `yaml:"file" json:"file"`
-	Status    		Status `yaml:"status" json:"status"`
-	Index     		int    `yaml:"index" json:"index"`
-	ClusterIndex    int    `yaml:"clusterIndex" json:"clusterIndex"`
+	Name         string `yaml:"name" json:"name"`
+	Namespace    string `yaml:"namespace" json:"namespace"`
+	File         string `yaml:"file" json:"file"`
+	Status       Status `yaml:"status" json:"status"`
+	Index        int    `yaml:"index" json:"index"`
+	ClusterIndex int    `yaml:"clusterIndex" json:"clusterIndex"`
 }
 
 func NewInstance(name string, namespace string, clusterName string, nodeName string) Instance {

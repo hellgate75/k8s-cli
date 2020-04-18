@@ -100,7 +100,7 @@ func (c Executor) addNode() error {
 }
 
 func (c Executor) addInstance() error {
-	if c.request.ClusterName == "" || c.request.NodeName == "" || c.request.Instance == ""  || c.request.Namespace == "" {
+	if c.request.ClusterName == "" || c.request.NodeName == "" || c.request.Instance == "" || c.request.Namespace == "" {
 		return errors.New(fmt.Sprintf("Error, could not create a cluster node instance without name, node name, instance name and namespace information"))
 	}
 	if !c.internal.Contains(c.request.ClusterName) {
@@ -114,51 +114,53 @@ func (c Executor) addInstance() error {
 		if !cl.Contains(c.request.NodeName) {
 			return errors.New(fmt.Sprintf("Error, could not create a cluster node instance, cluster name %s doesn't exists", c.request.ClusterName))
 		} else {
-			if !cl.Contains(c.request.NodeName) {
-				return errors.New(fmt.Sprintf("Error, could not create a cluster node instance, cluster name %s, with node name %s doesn't exist", c.request.ClusterName, c.request.NodeName))
+			if cl.ContainsInstance(c.request.Instance) {
+				return errors.New(fmt.Sprintf("Error, could not create a cluster node instance, in cluster name %s instance %s already exists", c.request.ClusterName, c.request.Instance))
+			}
+			if cl.ContainsNameSpace(c.request.Namespace) {
+				return errors.New(fmt.Sprintf("Error, could not create a cluster node instance, in cluster name %s namespace %s already exists", c.request.ClusterName, c.request.Namespace))
+			}
+			var nds = make([]model.Node, 0)
+			if nds = cl.GetByName(c.request.NodeName); len(nds) < 1 {
+				return errors.New(fmt.Sprintf("Error, could not create a cluster node instance, cluster name %s, with node name %s has following occcurances %v instead of one", c.request.ClusterName, c.request.NodeName, len(nds)))
 			} else {
-				var nds = make([]model.Node, 0)
-				if nds = cl.GetByName(c.request.NodeName); len(nds) < 1 {
-					return errors.New(fmt.Sprintf("Error, could not create a cluster node instance, cluster name %s, with node name %s has following occcurances %v instead of one", c.request.ClusterName, c.request.NodeName, len(nds)))
-				} else {
-					var nd = nds[0]
-					if nd.FreeSlots() <= 0 {
-						return errors.New(fmt.Sprintf("Error, could not create a cluster node instance, cluster name %s, with node name %s has no free slot(s)", c.request.ClusterName, c.request.NodeName))
-					}
-					var found = false
-					for _, nd := range cl.Nodes {
-						if !found {
-							for _, in := range nd.Instances {
-								if !found && in.Namespace == c.request.Namespace {
-									found = true
-								}
+				var nd = nds[0]
+				if nd.FreeSlots() <= 0 {
+					return errors.New(fmt.Sprintf("Error, could not create a cluster node instance, cluster name %s, with node name %s has no free slot(s)", c.request.ClusterName, c.request.NodeName))
+				}
+				var found = false
+				for _, nd := range cl.Nodes {
+					if !found {
+						for _, in := range nd.Instances {
+							if !found && in.Namespace == c.request.Namespace {
+								found = true
 							}
 						}
 					}
-					if found {
-						return errors.New(fmt.Sprintf("Error, could not create a cluster node instance, cluster name %s, has already a namespace named: %s", c.request.ClusterName, c.request.Namespace))
-					}
-					i := model.NewInstance(c.request.Instance, c.request.Namespace, c.request.ClusterName, c.request.NodeName)
-					nd.Instances = append(nd.Instances, i)
-					success := cl.UpdateNode(nd)
-					if !success {
-						return errors.New(fmt.Sprintf("Couldn't update node named %s in cluster %s nodes list", c.request.NodeName, c.request.ClusterName))
-					}
-					state := c.internal.UpdateCluster(cl)
-					if !state {
-						return errors.New(fmt.Sprintf("Couldn't update cluster %s in cluster list", c.request.ClusterName))
-					}
-					err := c.commit()
-					if err != nil {
-						return err
-					}
-					c.print(model.SuccessResponse{
-						Command: c.request.Command,
-						Subject: c.request.SubCommand,
-						Status:  "Created",
-						Message: fmt.Sprintf("Instance %s in Node %s of Cluster %s has been created successfully", c.request.Instance, c.request.NodeName, c.request.ClusterName),
-					})
 				}
+				if found {
+					return errors.New(fmt.Sprintf("Error, could not create a cluster node instance, cluster name %s, has already a namespace named: %s", c.request.ClusterName, c.request.Namespace))
+				}
+				i := model.NewInstance(c.request.Instance, c.request.Namespace, c.request.ClusterName, c.request.NodeName)
+				nd.Instances = append(nd.Instances, i)
+				success := cl.UpdateNode(nd)
+				if !success {
+					return errors.New(fmt.Sprintf("Couldn't update node named %s in cluster %s nodes list", c.request.NodeName, c.request.ClusterName))
+				}
+				state := c.internal.UpdateCluster(cl)
+				if !state {
+					return errors.New(fmt.Sprintf("Couldn't update cluster %s in cluster list", c.request.ClusterName))
+				}
+				err := c.commit()
+				if err != nil {
+					return err
+				}
+				c.print(model.SuccessResponse{
+					Command: c.request.Command,
+					Subject: c.request.SubCommand,
+					Status:  "Created",
+					Message: fmt.Sprintf("Instance %s in Node %s of Cluster %s has been created successfully", c.request.Instance, c.request.NodeName, c.request.ClusterName),
+				})
 			}
 		}
 	}

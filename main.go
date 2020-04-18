@@ -60,7 +60,6 @@ func showCommandInit(subCommand string) *flag.FlagSet {
 	return fset
 }
 
-
 func detailsCommandInit(subCommand string) *flag.FlagSet {
 	fmt.Println("Show specific cluster, node or instance details:")
 	fset := flag.NewFlagSet(fmt.Sprintf("k8s-cli (cmd: show %s)", subCommand), flag.ContinueOnError)
@@ -78,7 +77,6 @@ func detailsCommandInit(subCommand string) *flag.FlagSet {
 	}
 	return fset
 }
-
 
 func ensureCommandInit(subCommand string) *flag.FlagSet {
 	fmt.Println("Calculate first node available for a new instance:")
@@ -269,6 +267,9 @@ func main() {
 		err := exec.Init()
 		if err != nil {
 			errResp := model.ErrorResponse{
+				Command: command,
+				Subject: subcommand,
+				Status:  "Error",
 				Code:    401,
 				Message: fmt.Sprintf("%v", err),
 			}

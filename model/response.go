@@ -1,6 +1,9 @@
 package model
 
 type ErrorResponse struct {
+	Command string `yaml:"command" json:"command"`
+	Subject string `yaml:"subject" json:"subject"`
+	Status  string `yaml:"status" json:"status"`
 	Code    int    `yaml:"code" json:"code"`
 	Message string `yaml:"message" json:"message"`
 }
