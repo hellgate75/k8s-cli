@@ -284,6 +284,9 @@ func main() {
 		err = exec.Execute()
 		if err != nil {
 			errResp := model.ErrorResponse{
+				Command: command,
+				Subject: subcommand,
+				Status:  "Error",
 				Code:    402,
 				Message: fmt.Sprintf("%v", err),
 			}
