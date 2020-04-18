@@ -20,21 +20,23 @@ Provide easy to use infrastructure tools that collect information about K8S clus
 
 Command provides some fetaures, as follow:
 
-* `-command show` (cluster, nodes, instances) - Provides the list of available cluster, clusters, nodes, installations
+* `-command show` *(clusters, nodes, instances)* - Provides the list of available cluster, clusters, nodes, installations
 
-* `-command details` (cluste, node, instance) - Provides the list of specific cluster, cluster, node, installation
+* `-command details` *(cluster, node, instance)* - Provides the list of specific cluster, cluster, node, installation
 
-* `-command add` (cluster, node, instance) Add  a node or an instance to a node
+* `-command discover` *(nodes)* - Discover New Kubernetes *Added* and *Ready* nodes and creates eventually nodes in the local configuration
 
-* `-command remove` (cluster, node, instance) Remove  a node or an instance from a node
+* `-command add` *(cluster, node, instance)* Add  a node or an instance to a node
 
-* `-command check` (cluster, node, instance) Verifies with kube-ctl commands the availability of the cluster, node cluster, etc...
+* `-command remove` *(cluster, node, instance)* Remove  a node or an instance from a node
 
-* `-command prepare` Prepare a spacific  instance environment for installation purposes
+* `-command check` *(cluster, node, instance)* Verifies with kube-ctl commands the availability of the cluster, node cluster, etc...
 
-* `-command ensure` Verify first node with availability to deploy an helm instance, not taken yet
+* `-command prepare` *(instance)*  Prepare a spacific  instance environment for installation purposes
 
-* `-command help` Shows commands or command details (if used help <command>)
+* `-command ensure` *(instance)* Verify first node with availability to deploy an helm instance, not taken yet
+
+* `-command help` *(show, details, discover, add, remove, verify, prepare. ensure)* Shows commands or command details (if used help <command>)
 
 
 ## Build the project

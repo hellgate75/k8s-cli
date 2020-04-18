@@ -28,7 +28,7 @@ var namespace string
 var dataDir string
 
 func initHelp() {
-	flag.StringVar(&command, "command", "help", "Required executor action (show, details, add, remove, verify, prepare. ensure, help)")
+	flag.StringVar(&command, "command", "help", "Required executor action (show, details, discover, add, remove, verify, prepare. ensure, help)")
 	flag.StringVar(&subcommand, "subject", "", "Required executor action subject (cluster, node, instance) or executor in case of help")
 	flag.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
 	flag.StringVar(&subsubcommand, "details", "", "Required executor action subject (cluster, node, instance) only in case of help")
@@ -46,8 +46,8 @@ func initHelp() {
 func showCommandInit(subCommand string) *flag.FlagSet {
 	fmt.Println("Show clusters, nodes or instances details:")
 	fset := flag.NewFlagSet(fmt.Sprintf("k8s-cli (cmd: show %s)", subCommand), flag.ContinueOnError)
-	fset.StringVar(&command, "command", "show", "Required executor action : add")
-	fset.StringVar(&subcommand, "subject", "cluster", "Required executor action subject (clusters, nodes, instances)")
+	fset.StringVar(&command, "command", "show", "Required executor action : show")
+	fset.StringVar(&subcommand, "subject", "clusters", "Required executor action subject (clusters, nodes, instances)")
 	fset.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
 	fset.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
 	fset.BoolVar(&verifySlots, "verify-slots", false, "Retrun information about Free slots for nodes and clusters")
@@ -62,19 +62,31 @@ func showCommandInit(subCommand string) *flag.FlagSet {
 
 func detailsCommandInit(subCommand string) *flag.FlagSet {
 	fmt.Println("Show specific cluster, node or instance details:")
-	fset := flag.NewFlagSet(fmt.Sprintf("k8s-cli (cmd: show %s)", subCommand), flag.ContinueOnError)
-	fset.StringVar(&command, "command", "show", "Required executor action : add")
-	fset.StringVar(&subcommand, "subject", "cluster", "Required executor action subject (clusters, nodes, instances)")
+	fset := flag.NewFlagSet(fmt.Sprintf("k8s-cli (cmd: details %s)", subCommand), flag.ContinueOnError)
+	fset.StringVar(&command, "command", "details", "Required executor action : details")
+	fset.StringVar(&subcommand, "subject", "clusters", "Required executor action subject (clusters, nodes, instances)")
 	fset.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
 	fset.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
 	fset.BoolVar(&verifySlots, "verify-slots", false, "Retrun information about Free slots for nodes and clusters")
 	fset.StringVar(&clusterName, "cluster-name", "default", "Cluster name")
-	if subCommand == "node" || subCommand == "instance" {
+	if subCommand == "nodes" || subCommand == "instances" {
 		fset.StringVar(&nodeName, "node-name", "", "Cluster node name")
 		if subCommand == "instances" {
 			fset.StringVar(&instanceName, "instance-name", "", "Cluster node name")
 		}
 	}
+	return fset
+}
+
+func discoverCommandInit(subCommand string) *flag.FlagSet {
+	fmt.Println("Makes a lookup in the remote kubernetes cluster and check/add (eventually) new nodes, using defaul or given number of slots:")
+	fset := flag.NewFlagSet(fmt.Sprintf("k8s-cli (cmd: discover %s)", subCommand), flag.ContinueOnError)
+	fset.StringVar(&command, "command", "discover", "Required executor action : discover")
+	fset.StringVar(&subcommand, "subject", "nodes", "Required executor action subject (nodes)")
+	fset.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
+	fset.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
+	flag.IntVar(&nodeSlots, "node-slots", 2, "Cluster node max number of prepareations")
+	fset.StringVar(&clusterName, "cluster-name", "default", "Cluster name")
 	return fset
 }
 
@@ -218,6 +230,10 @@ func main() {
 			fset := detailsCommandInit(subsubcommand)
 			fset.Parse(args)
 			fset.Usage()
+		case "discover":
+			fset := discoverCommandInit(subsubcommand)
+			fset.Parse(args)
+			fset.Usage()
 		case "add":
 			fset := addCommandInit(subsubcommand)
 			fset.Parse(args)
@@ -242,7 +258,7 @@ func main() {
 			fmt.Printf("Requested help of unknown subject: %s\n", subcommand)
 			flag.Usage()
 		}
-	case "show", "details", "add", "remove", "verify", "ensure", "prepare":
+	case "show", "details", "discover", "add", "remove", "verify", "ensure", "prepare":
 		waitApp(dataDir)
 		_ = lockApp(dataDir)
 		defer func() {

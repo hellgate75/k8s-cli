@@ -99,6 +99,8 @@ func (c Executor) Execute() error {
 		err = c.show()
 	case "details":
 		err = c.details()
+	case "discover":
+		err = c.discover()
 	case "add":
 		err = c.add()
 	case "remove":
