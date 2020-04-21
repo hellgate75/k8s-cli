@@ -14,7 +14,7 @@ import (
 func (c Executor) prepare() error {
 
 	switch strings.ToLower(c.request.SubCommand) {
-	case "instance":
+	case "", "instance":
 		return c.prepareInstance()
 	default:
 		return errors.New(fmt.Sprintf("Command prepare, sub-command: %s is unknown", c.request.SubCommand))
@@ -113,6 +113,7 @@ func (c Executor) prepareInstance() error {
 			buff.Write([]byte(fmt.Sprintf("NAMESPACE=\"%s\"\n", inst.Namespace)))
 			buff.Write([]byte(fmt.Sprintf("KUBECONFIG=\"%s\"\n", kubefile)))
 			buff.Write([]byte("KUBECTL_BASE=\"--kubeconfig=$KUBECONFIG --namespace=$NAMESPACE\"\n"))
+			buff.Write([]byte("HELM_BASE=\"$KUBECTL_BASE --registry-config $HELM_DIR/registry.json --repository-cache $HELM_DIR/repository --repository-config $HELM_DIR/repositories.yaml\"\n"))
 			buff.Write([]byte(fmt.Sprintf("HELM_HOME=\"%s%s.helm\"\n", folder, sep)))
 			buff.Write([]byte("KUBECTL_CONFIG_FILE=$KUBECONFIG\n"))
 			buff.Write([]byte("alias kube-ns=\"kubectl $KUBECTL_BASE\"\n"))
