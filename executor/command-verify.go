@@ -25,8 +25,9 @@ func (c Executor) verify() error {
 }
 const(
 	clusterCheckTemplate="kubectl --kubeconfig=%s --namespace=kube-system cluster-info"
-	nodeCheckTemplate="kubectl --kubeconfig=%s --namespace=kube-system get nodes"
-	nsCheckTemplate="kubectl --kubeconfig=%s --namespace=%s get ns"
+	nodeCheckTemplate="kubectl --kubeconfig=%s --namespace=kube-system get nodes %s --template  --template {{.metadata.name}}"
+	nsCheckTemplate="kubectl --kubeconfig=%s --namespace=%s get ns %s  -o jsonpath=\"{.status.phase}\""
+	nsCheckTemplate2="kubectl --kubeconfig=%s --namespace=%s get pods  -o jsonpath=\"{.items[*].metadata.name}\""
 )
 func execute(command []string) (string, error) {
 	cmdVal := command[0]
@@ -56,15 +57,16 @@ func (c Executor) verifyCluster() error {
 	}
 	cmd := fmt.Sprintf(clusterCheckTemplate, outPath)
 	output, err := execute(strings.Split(cmd, " "))
-	if err != nil {
-		return err
-	}
 	status := model.Unhealty
 	message := "--"
-	if strings.Contains(strings.ToLower(output), "kubernetes master") {
-		status = model.Deployed
+	if err != nil {
+		message=fmt.Sprintf("%v", err)
 	} else {
-		message = output
+		if strings.Contains(strings.ToLower(output), "kubernetes master") {
+			status = model.Deployed
+		} else {
+			message = output
+		}
 	}
 	c.print(model.HealthCheckResponse{
 		Type: "Cluster",
@@ -98,17 +100,18 @@ func (c Executor) verifyNode() error {
 	if strings.ToLower(runtime.GOOS) == "windows" {
 		outPath = strings.ReplaceAll(outPath, fmt.Sprintf("%c", os.PathSeparator), "/")
 	}
-	cmd := fmt.Sprintf(nodeCheckTemplate, outPath)
+	cmd := fmt.Sprintf(nodeCheckTemplate, outPath, nd.Host)
 	output, err := execute(strings.Split(cmd, " "))
-	if err != nil {
-		return err
-	}
 	status := model.Unhealty
 	message := "--"
-	if strings.Contains(strings.ToLower(output), nd.Host) {
-		status = model.Deployed
+	if err != nil {
+		message=fmt.Sprintf("%v", err)
 	} else {
-		message = output
+		if strings.Contains(strings.ToLower(output), nd.Host) {
+			status = model.Deployed
+		} else {
+			message = output
+		}
 	}
 	c.print(model.HealthCheckResponse{
 		Type: "Node",
@@ -145,17 +148,29 @@ func (c Executor) verifyInstance() error {
 	if strings.ToLower(runtime.GOOS) == "windows" {
 		outPath = strings.ReplaceAll(outPath, fmt.Sprintf("%c", os.PathSeparator), "/")
 	}
-	cmd := fmt.Sprintf(nsCheckTemplate, outPath, inst.Namespace)
+	cmd := fmt.Sprintf(nsCheckTemplate, outPath, inst.Namespace, inst.Namespace)
 	output, err := execute(strings.Split(cmd, " "))
-	if err != nil {
-		return err
-	}
 	status := model.Unhealty
 	message := "--"
-	if strings.Contains(strings.ToLower(output), inst.Namespace) {
-		status = model.Deployed
+	if err != nil {
+		message=fmt.Sprintf("%v", err)
 	} else {
-		message = output
+		if strings.Contains(strings.ToLower(output), "active"){
+			cmd = fmt.Sprintf(nsCheckTemplate2, outPath, inst.Namespace)
+			output, err = execute(strings.Split(cmd, " "))
+			if err != nil {
+				message=fmt.Sprintf("%v", err)
+			} else {
+				if "" != output {
+					status = model.Deployed
+				} else {
+					message = output
+				}
+			}
+		} else {
+			message = output
+		}
+
 	}
 	c.print(model.HealthCheckResponse{
 		Type: "Instance",
