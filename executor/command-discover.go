@@ -9,8 +9,8 @@ import (
 	"strings"
 )
 
-const(
-	clusterDiscoverTemplate="kubectl --kubeconfig=%s --namespace=kube-system get nodes"
+const (
+	clusterDiscoverTemplate = "kubectl --kubeconfig=%s --namespace=kube-system get nodes"
 )
 
 func (c Executor) discover() error {
@@ -46,11 +46,11 @@ func (c Executor) discoverNodes() error {
 		var hosts = make([]string, 0)
 		var found = false
 		for _, l := range lines {
-			if ! strings.Contains(strings.ToLower(l), "name ") && l != "" && strings.Contains(strings.ToLower(l), "ready") {
+			if !strings.Contains(l, "NAME") && l != "" && strings.Contains(strings.ToLower(l), "ready") {
 				host := strings.Split(l, " ")[0]
 				if "" != host {
-					if ! cl.ContainsHost(host) {
-						prefix:=fmt.Sprintf("%s-Node", cl.Name)
+					if !cl.ContainsHost(host) {
+						prefix := fmt.Sprintf("%s-Node", cl.Name)
 						idx := 1
 						for cl.Contains(fmt.Sprintf("%s-%v", prefix, idx)) {
 							idx += 1

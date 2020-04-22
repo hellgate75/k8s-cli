@@ -22,13 +22,6 @@ func (c Executor) verify() error {
 	}
 }
 
-const (
-	clusterCheckTemplate = "kubectl --kubeconfig=%s --namespace=kube-system cluster-info"
-	nodeCheckTemplate    = "kubectl --kubeconfig=%s --namespace=kube-system get nodes %s --template  --template {{.metadata.name}}"
-	nsCheckTemplate      = "kubectl --kubeconfig=%s --namespace=%s get ns %s  -o jsonpath=\"{.status.phase}\""
-	nsCheckTemplate2     = "kubectl --kubeconfig=%s --namespace=%s get pods  -o jsonpath=\"{.items[*].metadata.name}\""
-)
-
 func execute(command []string) (string, error) {
 	cmdVal := command[0]
 	cmdArgs := command[1:]
