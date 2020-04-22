@@ -85,7 +85,7 @@ func discoverCommandInit(subCommand string) *flag.FlagSet {
 	fset.StringVar(&subcommand, "subject", "nodes", "Required executor action subject (nodes)")
 	fset.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
 	fset.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
-	flag.IntVar(&nodeSlots, "node-slots", 2, "Cluster node max number of prepareations")
+	fset.IntVar(&nodeSlots, "node-slots", 2, "Cluster node max number of prepareations")
 	fset.StringVar(&clusterName, "cluster-name", "default", "Cluster name")
 	return fset
 }
@@ -129,7 +129,7 @@ func removeCommandInit(subCommand string) *flag.FlagSet {
 	fset.StringVar(&subcommand, "subject", "cluster", "Required executor action subject (cluster, node, instance)")
 	fset.StringVar(&clusterName, "cluster-name", "default", "Cluster name")
 	fset.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
-	flag.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
+	fset.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
 	if subCommand == "node" || subCommand == "instance" {
 		fset.StringVar(&nodeName, "node-name", "", "Cluster node name")
 		if subCommand == "instance" {
@@ -146,7 +146,7 @@ func verifyCommandInit(subCommand string) *flag.FlagSet {
 	fset.StringVar(&subcommand, "subject", "cluster", "Required executor action subject (cluster, node, instance)")
 	fset.StringVar(&clusterName, "cluster-name", "default", "Cluster name")
 	fset.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
-	flag.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
+	fset.StringVar(&format, "format", "json", "Required output format (json, yaml), in case of error or missing will be used JSON")
 	if subCommand == "node" || subCommand == "instance" {
 		fset.StringVar(&nodeName, "node-name", "", "Cluster node name")
 		if subCommand == "instance" {
