@@ -177,6 +177,9 @@ func waitApp(folder string) {
 	}
 	var lockFile = fmt.Sprintf("%s%c%s", folder, os.PathSeparator, ".lock")
 	_, err := os.Stat(lockFile)
+	if err == nil {
+		fmt.Println("{\"code\": 120, \"error\": \"k8s-cli process locked from abother process...\"}")
+	}
 	for err == nil {
 		time.Sleep(5 * time.Second)
 		_, err = os.Stat(lockFile)
