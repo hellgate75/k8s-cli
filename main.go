@@ -28,7 +28,7 @@ var namespace string
 var dataDir string
 
 func initHelp() {
-	flag.StringVar(&command, "command", "help", "Required executor action (show, details, discover, add, remove, verify, prepare. ensure, help)")
+	flag.StringVar(&command, "command", "help", "Required executor action (show, details, discover, add, remove, verify, prepare. ensure, help, -clean-lock)")
 	flag.StringVar(&subcommand, "subject", "", "Required executor action subject (cluster, node, instance) or executor in case of help")
 	flag.StringVar(&dataDir, "config-dir", common.ConfigDir(), "Configuration folder")
 	flag.StringVar(&subsubcommand, "details", "", "Required executor action subject (cluster, node, instance) only in case of help")
@@ -215,7 +215,16 @@ func lockApp(folder string) bool {
 func main() {
 	initHelp()
 	var args = []string(os.Args)
+	fmt.Sprintf("Args: %v", args)
+	if len(os.Args) > 1 && os.Args[1] == "-clean-lock" {
+		os.Args = args[1:]
+	}
 	flag.Parse()
+	if len(args) > 1 && args[1] == "-clean-lock" {
+		unlockApp(dataDir)
+		fmt.Println("Lock removed, if present")
+		os.Exit(0)
+	}
 	switch strings.ToLower(command) {
 	case "help":
 		fmt.Println(command)
